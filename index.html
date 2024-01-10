@@ -13,8 +13,8 @@
       
       #container {
         position: absolute;
-        width: 200px;
-        height: 200px;
+        width: 500px;
+        height: 500px;
         margin: auto;
         transform: rotate(45deg);
         top: 0; bottom: 0; left: 0; right: 0;
@@ -22,7 +22,7 @@
     </style>
   </head>
   <body>
-    <canvas id="container" width="200" height="200"></canvas>
+    <canvas id="container" width="500" height="500"></canvas>
   
     <script src="requestAnimationFrame.js"></script>
       <script>
@@ -32,9 +32,9 @@ var points = [],
 document.getElementById('container'),
   context = canvas.getContext('2d'),
   radius = 5,
-  boundaryX = 200,
-  boundaryY = 200,
-  numberOfPoints = 30;
+  boundaryX = 500,
+  boundaryY = 500,
+  numberOfPoints = 60;
 
 init();
 
@@ -125,7 +125,7 @@ function draw() {
 }
 
 function animate() {
-  context.clearRect ( 0 , 0 , 200 , 200 );
+  context.clearRect ( 0 , 0 , 500 , 500 );
   draw();
   requestAnimationFrame(animate);
 }
