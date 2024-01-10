@@ -16,7 +16,7 @@
         width: 500px;
         height: 500px;
         margin: auto;
-        transform: rotate(45deg);
+        transform: rotate(33deg);
         top: 0; bottom: 0; left: 0; right: 0;
       }
     </style>
@@ -90,7 +90,7 @@ function resetVelocity(point, axis, dir) {
 function drawCircle(x, y) {
   context.beginPath();
   context.arc(x, y, radius, 0, 2 * Math.PI, false);
-  context.fillStyle = '#97badc';
+  context.fillStyle = '#28B95A';
   context.fill();  
 }
 
@@ -98,7 +98,7 @@ function drawLine(x1, y1, x2, y2) {
   context.beginPath();
   context.moveTo(x1, y1);
   context.lineTo(x2, y2);
-  context.strokeStyle = '#8ab2d8'
+  context.strokeStyle = '#28F05A'
   context.stroke();
 }  
 
