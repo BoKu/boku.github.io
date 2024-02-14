@@ -94,6 +94,14 @@ function drawCircle(x, y) {
   context.fill();  
 }
 
+function drawDuck(x, y) {
+  var img = new Image();
+  img.onload = function() {
+    context.drawImage(img, x, y, img.width, img.height);
+  };
+  img.src = 'path_to_your_duck_image.png';
+}
+
 function drawLine(x1, y1, x2, y2) {
   context.beginPath();
   context.moveTo(x1, y1);
