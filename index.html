@@ -94,15 +94,6 @@ function drawCircle(x, y) {
   context.fill();  
 }
 
-function drawDuck(x, y) {
-  var img = new Image();
-  img.src = 'https://raw.githubusercontent.com/BoKu/boku.github.io/master/duck.png';
-  img.onload = function() {
-    //context.drawImage(img, x, y, img.width, img.height);
-    context.drawImage(img, x, y, 16, 16);
-  };
-}
-
 function drawLine(x1, y1, x2, y2) {
   context.beginPath();
   context.moveTo(x1, y1);
@@ -117,8 +108,7 @@ function draw() {
     var point = points[i];
     point.x += point.vx;
     point.y += point.vy;
-    //drawCircle(point.x, point.y);
-    drawDuck(point.x, point.y);
+    drawCircle(point.x, point.y);
     // lines
     drawLine(point.x, point.y, point.buddy.x, point.buddy.y);
     // check for edge
