@@ -8,7 +8,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦆</text></svg>">
     <style>
       body {
-       background: #102131;  
+       background: #050a0e;
+       overflow: hidden;
       }
       
       #container {
@@ -154,7 +155,8 @@ function draw() {
 
     // draw letter if present
     if (point.char) {
-      context.fillStyle = '#102131'; // darker fill so letter is visible over white circle
+      //context.fillStyle = '#102131'; // darker fill so letter is visible over white circle
+      context.fillStyle = '#fff'; // darker fill so letter is visible over white circle
       context.fillText(point.char, point.x, point.y + 1); // slight vertical tweak
     }
 
