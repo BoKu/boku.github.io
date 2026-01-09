@@ -4,7 +4,6 @@
     <title>BoKu - Dev Duck</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="viewport" content="width=device-width">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦆</text></svg>">
     <style>
       body {
@@ -36,6 +35,12 @@ var points = [],
     boundaryY = 500,
     numberOfPoints = 69,
     labels = ['B','o','K','u']; // letters to attach to points
+
+// visual settings you can tweak:
+var fontSize = 12;         // label font size in px
+var labelPadding = 6;      // horizontal padding (px) around the label inside the circle
+var lineColor = '#8BDA9F'; // connection line color
+var lineWidth = 1;         // connection line width
 
 init();
 
@@ -69,6 +74,7 @@ function init() {
   // set canvas text style defaults
   context.textAlign = 'center';
   context.textBaseline = 'middle';
+  context.font = 'bold ' + fontSize + 'px sans-serif';
   
   // animate
   animate();
@@ -90,8 +96,8 @@ function createPoint(opts) {
 
   if (opts.char) {
     point.char = opts.char;
-    point.radius = 8; // slightly larger circle for labeled points
-    point.radius = radius; //default
+    // initial radius; final computed in draw() to match text + padding
+    point.radius = radius;
   } else {
     point.radius = radius;
   }
@@ -119,48 +125,50 @@ function resetVelocity(point, axis, dir) {
 function drawCircle(x, y, r, isLabel) {
   context.beginPath();
   context.arc(x, y, r, 0, 2 * Math.PI, false);
-  //context.fillStyle = isLabel ? '#ffffff' : '#1E963C';
-  context.fillStyle = '#1E963C';
+  context.fillStyle = isLabel ? '#ffffff' : '#1E963C';
   context.fill();  
+  if (isLabel) {
+    // subtle stroke to separate white circle from background/lines
+    context.lineWidth = 1;
+    context.strokeStyle = '#d0d0d0';
+    context.stroke();
+  }
 }
 
 function drawLine(x1, y1, x2, y2) {
   context.beginPath();
   context.moveTo(x1, y1);
   context.lineTo(x2, y2);
-  context.strokeStyle = '#8BDA9F';
+  context.strokeStyle = lineColor;
+  context.lineWidth = lineWidth;
   context.stroke();
 }  
 
 function draw() {
-  // set letter font (use a size that sits comfortably on the point)
-  context.font = 'bold 22px sans-serif';
-  context.font = 'bold 8px sans-serif';
+  // ensure font is set before measuring text
+  context.font = 'bold ' + fontSize + 'px sans-serif';
 
+  // 1) update positions
   for(var i = 0, l = points.length; i < l; i++) {
     var point = points[i];
-
-    // update positions
     point.x += point.vx;
     point.y += point.vy;
+  }
 
-    // draw circle (bigger/white for labeled points so the letter stands out)
-    var isLabel = !!point.char;
-    drawCircle(point.x, point.y, point.radius, isLabel);
-
-    // draw connecting line to buddy
-    if (point.buddy) {
-      drawLine(point.x, point.y, point.buddy.x, point.buddy.y);
-    }
-
-    // draw letter if present
+  // 2) compute radii for labeled points so collisions respect the padded size
+  for(var i = 0, l = points.length; i < l; i++) {
+    var point = points[i];
     if (point.char) {
-      //context.fillStyle = '#102131'; // darker fill so letter is visible over white circle
-      context.fillStyle = '#961E78'; // darker fill so letter is visible over white circle
-      context.fillText(point.char, point.x, point.y + 1); // slight vertical tweak
+      var metrics = context.measureText(point.char);
+      var textWidth = metrics.width;
+      // radius to fit text width or font size vertically, plus padding
+      var computedRadius = Math.max(radius, Math.max(textWidth, fontSize) / 2 + labelPadding);
+      point.radius = computedRadius;
+    } else {
+      point.radius = radius;
     }
 
-    // check for edge collisions (bounce)
+    // check for edge collisions (bounce) using the computed radius
     if(point.x < 0 + point.radius) {
       point.x = point.radius;
       resetVelocity(point, 'x', 1);
@@ -174,6 +182,28 @@ function draw() {
     } else if(point.y > boundaryY - point.radius) {
       point.y = boundaryY - point.radius;
       resetVelocity(point, 'y', -1);
+    }
+  }
+
+  // 3) draw all connecting lines first so they appear behind circles
+  for(var i = 0, l = points.length; i < l; i++) {
+    var point = points[i];
+    if (point.buddy) {
+      drawLine(point.x, point.y, point.buddy.x, point.buddy.y);
+    }
+  }
+
+  // 4) draw circles and labels on top
+  for(var i = 0, l = points.length; i < l; i++) {
+    var point = points[i];
+    var isLabel = !!point.char;
+
+    drawCircle(point.x, point.y, point.radius, isLabel);
+
+    // draw letter if present
+    if (point.char) {
+      context.fillStyle = '#102131'; // darker fill so letter is visible over white circle
+      context.fillText(point.char, point.x, point.y + 1); // slight vertical tweak
     }
   }
 }
