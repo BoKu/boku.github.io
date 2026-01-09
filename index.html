@@ -13,8 +13,8 @@
       
       #container {
         position: absolute;
-        width: 500px;
-        height: 500px;
+        width: 1000px;
+        height: 1000px;
         margin: auto;
         transform: rotate(45deg);
         top: 0; bottom: 0; left: 0; right: 0;
@@ -22,7 +22,7 @@
     </style>
   </head>
   <body>
-    <canvas id="container" width="500" height="500"></canvas>
+    <canvas id="container" width="1000" height="1000"></canvas>
   
     <script src="requestAnimationFrame.js"></script>
       <script>
@@ -31,14 +31,14 @@ var points = [],
     canvas = document.getElementById('container'),
     context = canvas.getContext('2d'),
     radius = 5,
-    boundaryX = 500,
-    boundaryY = 500,
+    boundaryX = 1000,
+    boundaryY = 1000,
     numberOfPoints = 69,
     labels = ['B','o','K','u']; // letters to attach to points
 
 // visual settings you can tweak:
-var fontSize = 12;         // label font size in px
-var labelPadding = 6;      // horizontal padding (px) around the label inside the circle
+var fontSize = 8;         // label font size in px
+var labelPadding = 4;      // horizontal padding (px) around the label inside the circle
 var lineColor = '#8BDA9F'; // connection line color
 var lineWidth = 1;         // connection line width
 
