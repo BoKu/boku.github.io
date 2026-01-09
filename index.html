@@ -33,7 +33,7 @@ var points = [],
     radius = 5,
     boundaryX = 500,
     boundaryY = 500,
-    numberOfPoints = 60,
+    numberOfPoints = 69,
     labels = ['B','o','K','u']; // letters to attach to points
 
 init();
@@ -90,6 +90,7 @@ function createPoint(opts) {
   if (opts.char) {
     point.char = opts.char;
     point.radius = 8; // slightly larger circle for labeled points
+    point.radius = radius; //default
   } else {
     point.radius = radius;
   }
@@ -117,7 +118,8 @@ function resetVelocity(point, axis, dir) {
 function drawCircle(x, y, r, isLabel) {
   context.beginPath();
   context.arc(x, y, r, 0, 2 * Math.PI, false);
-  context.fillStyle = isLabel ? '#ffffff' : '#1E963C';
+  //context.fillStyle = isLabel ? '#ffffff' : '#1E963C';
+  context.fillStyle = '#1E963C';
   context.fill();  
 }
 
@@ -132,6 +134,7 @@ function drawLine(x1, y1, x2, y2) {
 function draw() {
   // set letter font (use a size that sits comfortably on the point)
   context.font = 'bold 22px sans-serif';
+  context.font = 'bold 9px sans-serif';
 
   for(var i = 0, l = points.length; i < l; i++) {
     var point = points[i];
