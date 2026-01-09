@@ -135,7 +135,7 @@ function drawLine(x1, y1, x2, y2) {
 function draw() {
   // set letter font (use a size that sits comfortably on the point)
   context.font = 'bold 22px sans-serif';
-  context.font = 'bold 9px sans-serif';
+  context.font = 'bold 8px sans-serif';
 
   for(var i = 0, l = points.length; i < l; i++) {
     var point = points[i];
@@ -156,7 +156,7 @@ function draw() {
     // draw letter if present
     if (point.char) {
       //context.fillStyle = '#102131'; // darker fill so letter is visible over white circle
-      context.fillStyle = '#fff'; // darker fill so letter is visible over white circle
+      context.fillStyle = '#961E78'; // darker fill so letter is visible over white circle
       context.fillText(point.char, point.x, point.y + 1); // slight vertical tweak
     }
 
