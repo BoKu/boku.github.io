@@ -28,69 +28,96 @@
       <script>
 var points = [],
     velocity2 = 5, // velocity squared
-    canvas = 
-document.getElementById('container'),
-  context = canvas.getContext('2d'),
-  radius = 5,
-  boundaryX = 500,
-  boundaryY = 500,
-  numberOfPoints = 60;
+    canvas = document.getElementById('container'),
+    context = canvas.getContext('2d'),
+    radius = 5,
+    boundaryX = 500,
+    boundaryY = 500,
+    numberOfPoints = 60,
+    labels = ['B','o','K','u']; // letters to attach to points
 
 init();
 
 function init() {
-  // create points
-  for (var i = 0; i<numberOfPoints; i++) {
+  // create most points (leave room for labeled points)
+  var randomPoints = numberOfPoints - labels.length;
+  for (var i = 0; i < randomPoints; i++) {
     createPoint();
   }
-  // create connections
-  for (var i = 0, l=points.length; i<l; i++) {
-    var point = points[i];
-    if(i == 0) {
-      points[i].buddy = points[points.length-1];
+
+  // create labeled points positioned roughly across the center so they look like a name
+  var startX = boundaryX/2 - 90;
+  var gap = 60;
+  for (var j = 0; j < labels.length; j++) {
+    createPoint({
+      x: startX + j * gap,
+      y: boundaryY/2,
+      char: labels[j]
+    });
+  }
+
+  // create connections (circular chain)
+  for (var i = 0, l = points.length; i < l; i++) {
+    if (i === 0) {
+      points[i].buddy = points[points.length - 1];
     } else {
-      points[i].buddy = points[i-1];
+      points[i].buddy = points[i - 1];
     }
   }
+  
+  // set canvas text style defaults
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
   
   // animate
   animate();
 }
 
-function createPoint() {
+function createPoint(opts) {
+  opts = opts || {};
   var point = {}, vx2, vy2;
-  point.x = Math.random()*boundaryX;
-  point.y = Math.random()*boundaryY;
-  // random vx 
-  point.vx = (Math.floor(Math.random())*2-1)*Math.random();
+  point.x = (typeof opts.x === 'number') ? opts.x : Math.random() * boundaryX;
+  point.y = (typeof opts.y === 'number') ? opts.y : Math.random() * boundaryY;
+
+  // random vx: use Math.floor(Math.random()*2) to get 0 or 1
+  var sign = (Math.floor(Math.random() * 2) * 2 - 1); // -1 or 1
+  point.vx = sign * Math.random();
   vx2 = Math.pow(point.vx, 2);
-  // vy^2 = velocity^2 - vx^2
-  vy2 = velocity2 - vx2;
-  point.vy = Math.sqrt(vy2) * (Math.random()*2-1);
+  // vy^2 = velocity^2 - vx^2 (ensure non-negative)
+  vy2 = Math.max(0, velocity2 - vx2);
+  point.vy = Math.sqrt(vy2) * ((Math.random() * 2) - 1);
+
+  if (opts.char) {
+    point.char = opts.char;
+    point.radius = 8; // slightly larger circle for labeled points
+  } else {
+    point.radius = radius;
+  }
+
   points.push(point);
 }
 
 function resetVelocity(point, axis, dir) {
-  var vx, vy;
+  var vx, vy, vx2, vy2;
   if(axis == 'x') {
-    point.vx = dir*Math.random();  
+    point.vx = dir * Math.random();  
     vx2 = Math.pow(point.vx, 2);
-  // vy^2 = velocity^2 - vx^2
-  vy2 = velocity2 - vx2;
-  point.vy = Math.sqrt(vy2) * (Math.random()*2-1);
+    // vy^2 = velocity^2 - vx^2
+    vy2 = Math.max(0, velocity2 - vx2);
+    point.vy = Math.sqrt(vy2) * (Math.random()*2-1);
   } else {
-    point.vy = dir*Math.random();  
+    point.vy = dir * Math.random();  
     vy2 = Math.pow(point.vy, 2);
-  // vy^2 = velocity^2 - vx^2
-  vx2 = velocity2 - vy2;
-  point.vx = Math.sqrt(vx2) * (Math.random()*2-1);
+    // vx^2 = velocity^2 - vy^2
+    vx2 = Math.max(0, velocity2 - vy2);
+    point.vx = Math.sqrt(vx2) * (Math.random()*2-1);
   }
 }
 
-function drawCircle(x, y) {
+function drawCircle(x, y, r, isLabel) {
   context.beginPath();
-  context.arc(x, y, radius, 0, 2 * Math.PI, false);
-  context.fillStyle = '#1E963C';
+  context.arc(x, y, r, 0, 2 * Math.PI, false);
+  context.fillStyle = isLabel ? '#ffffff' : '#1E963C';
   context.fill();  
 }
 
@@ -98,34 +125,56 @@ function drawLine(x1, y1, x2, y2) {
   context.beginPath();
   context.moveTo(x1, y1);
   context.lineTo(x2, y2);
-  context.strokeStyle = '#8BDA9F'
+  context.strokeStyle = '#8BDA9F';
   context.stroke();
 }  
 
 function draw() {
-  for(var i =0, l=points.length; i<l; i++) {
-    // circles
+  // set letter font (use a size that sits comfortably on the point)
+  context.font = 'bold 22px sans-serif';
+
+  for(var i = 0, l = points.length; i < l; i++) {
     var point = points[i];
+
+    // update positions
     point.x += point.vx;
     point.y += point.vy;
-    drawCircle(point.x, point.y);
-    // lines
-    drawLine(point.x, point.y, point.buddy.x, point.buddy.y);
-    // check for edge
-    if(point.x < 0+radius) {
+
+    // draw circle (bigger/white for labeled points so the letter stands out)
+    var isLabel = !!point.char;
+    drawCircle(point.x, point.y, point.radius, isLabel);
+
+    // draw connecting line to buddy
+    if (point.buddy) {
+      drawLine(point.x, point.y, point.buddy.x, point.buddy.y);
+    }
+
+    // draw letter if present
+    if (point.char) {
+      context.fillStyle = '#102131'; // darker fill so letter is visible over white circle
+      context.fillText(point.char, point.x, point.y + 1); // slight vertical tweak
+    }
+
+    // check for edge collisions (bounce)
+    if(point.x < 0 + point.radius) {
+      point.x = point.radius;
       resetVelocity(point, 'x', 1);
-    } else if(point.x > boundaryX-radius) {
+    } else if(point.x > boundaryX - point.radius) {
+      point.x = boundaryX - point.radius;
       resetVelocity(point, 'x', -1);
-    } else if(point.y < 0+radius) {
+    }
+    if(point.y < 0 + point.radius) {
+      point.y = point.radius;
       resetVelocity(point, 'y', 1);
-    } else if(point.y > boundaryY-radius) {
+    } else if(point.y > boundaryY - point.radius) {
+      point.y = boundaryY - point.radius;
       resetVelocity(point, 'y', -1);
-    } 
+    }
   }
 }
 
 function animate() {
-  context.clearRect ( 0 , 0 , 500 , 500 );
+  context.clearRect(0, 0, boundaryX, boundaryY);
   draw();
   requestAnimationFrame(animate);
 }
