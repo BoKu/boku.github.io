@@ -4,233 +4,901 @@
     <title>BoKu - Dev Duck</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BoKu - Dev Duck. Games, tools and web toys. Home of PHOSPHOR, a green-phosphor hacking sim.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦆</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-      body {
-       background: #050a0e;
-       overflow: hidden;
+      :root {
+        --phos-bright: #7dffa0;
+        --phos: #3cff6f;
+        --phos-dim: #1da347;
+        --phos-faint: #0c4d24;
+        --bg: #020503;
+        --font-mono: "JetBrains Mono", ui-monospace, Consolas, "Courier New", monospace;
       }
-      
-      #container {
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--phos);
+        font-family: var(--font-mono);
+        font-size: 16px;
+        line-height: 1.65;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* CRT scanlines */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+        pointer-events: none;
+        z-index: 50;
+      }
+
+      /* CRT vignette and faint phosphor haze */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.72) 100%),
+          radial-gradient(ellipse at center, rgba(60, 255, 111, 0.045), transparent 70%);
+        pointer-events: none;
+        z-index: 51;
+      }
+
+      ::selection { background: rgba(60, 255, 111, 0.25); color: var(--phos-bright); }
+
+      a { color: var(--phos-bright); text-decoration: none; }
+      a:hover { text-shadow: 0 0 12px var(--phos); }
+
+      /* ---------- Hero ---------- */
+
+      .hero {
+        position: relative;
+        min-height: 100svh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .hero canvas {
         position: absolute;
-        width: 1000px;
-        height: 1000px;
-        margin: auto;
-        transform: rotate(45deg);
-        top: 0; bottom: 0; left: 0; right: 0;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .hero-inner {
+        position: relative;
+        text-align: center;
+        padding: 2.5rem 2rem;
+        pointer-events: none;
+        /* dark haze pocket so drifting particles pass behind the text */
+        background: radial-gradient(ellipse 62% 55% at center, rgba(2, 5, 3, 0.86), transparent 78%);
+      }
+
+      .boot-line {
+        font-size: 0.75rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--phos-dim);
+        margin: 0 0 1.2rem;
+      }
+
+      .site-title {
+        margin: 0;
+        font-size: clamp(3.5rem, 14vw, 8rem);
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-indent: 0.22em; /* balance the tracking so the word stays optically centred */
+        color: var(--phos-bright);
+        text-shadow:
+          0 0 6px rgba(60, 255, 111, 0.9),
+          0 0 24px rgba(60, 255, 111, 0.55),
+          0 0 90px rgba(60, 255, 111, 0.35);
+      }
+
+      .tagline {
+        margin: 1.1rem 0 0;
+        color: var(--phos);
+        font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+      }
+
+      .tagline b { color: var(--phos-bright); }
+
+      .cta { margin-top: 2.2rem; pointer-events: auto; }
+
+      .cta a {
+        display: inline-block;
+        border: 1px solid var(--phos);
+        padding: 0.65rem 1.8rem;
+        font-size: 0.85rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--phos-bright);
+        box-shadow:
+          0 0 14px rgba(60, 255, 111, 0.25),
+          inset 0 0 14px rgba(60, 255, 111, 0.07);
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .cta a:hover {
+        background: rgba(60, 255, 111, 0.12);
+        box-shadow:
+          0 0 22px rgba(60, 255, 111, 0.45),
+          inset 0 0 22px rgba(60, 255, 111, 0.12);
+      }
+
+      .scroll-hint {
+        position: absolute;
+        bottom: 1.4rem;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--phos-dim);
+        letter-spacing: 0.3em;
+        animation: pulse 2.4s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 0.45; }
+        50% { opacity: 1; }
+      }
+
+      /* ---------- Content ---------- */
+
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 0 1.5rem 4rem;
+      }
+
+      .divider {
+        height: 1px;
+        border: none;
+        margin: 3.5rem auto;
+        background: linear-gradient(90deg, transparent, var(--phos-faint) 20%, var(--phos-dim) 50%, var(--phos-faint) 80%, transparent);
+      }
+
+      .intro {
+        color: var(--phos);
+        font-size: 1.05rem;
+      }
+
+      .intro b, .intro i { color: var(--phos-bright); }
+      .intro i { font-style: italic; }
+
+      h2 {
+        font-size: 1.4rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--phos-bright);
+        text-shadow: 0 0 14px rgba(60, 255, 111, 0.5);
+        margin: 2.8rem 0 1.2rem;
+      }
+
+      h2 .prompt { color: var(--phos-dim); margin-right: 0.6rem; }
+
+      /* Featured project cards */
+      .featured-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.4rem;
+        margin: 1.6rem 0 0.6rem;
+      }
+
+      @media (max-width: 640px) {
+        .featured-grid { grid-template-columns: 1fr; }
+      }
+
+      .card {
+        border: 1px solid var(--phos-faint);
+        background: rgba(2, 8, 4, 0.85);
+        display: flex;
+        flex-direction: column;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .card:hover {
+        border-color: var(--phos-dim);
+        box-shadow: 0 0 18px rgba(60, 255, 111, 0.12);
+      }
+
+      .card-img {
+        display: block;
+        border-bottom: 1px solid var(--phos-faint);
+        overflow: hidden;
+      }
+
+      .card-img img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        /* phosphor duotone: hover reveals the true colours */
+        filter: grayscale(1) sepia(1) hue-rotate(60deg) saturate(2.4) brightness(0.92) contrast(1.05);
+        transition: filter 0.25s ease;
+      }
+
+      .card:hover .card-img img { filter: none; }
+
+      .card-body { padding: 1rem 1.1rem 1.2rem; }
+
+      .card-body h3 {
+        margin: 0 0 0.4rem;
+        font-size: 1.05rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--phos-bright);
+      }
+
+      .card-body p {
+        margin: 0 0 0.8rem;
+        font-size: 0.88rem;
+        color: var(--phos);
+      }
+
+      .card-body p i { color: var(--phos-bright); }
+
+      .card-link {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        margin-top: auto;
+      }
+
+      .card-noimg {
+        border: 1px dashed var(--phos-faint);
+        background: rgba(2, 8, 4, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 16 / 9;
+        border-bottom: 1px solid var(--phos-faint);
+        color: var(--phos-dim);
+        font-size: 0.75rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+      }
+
+      .card-noimg pre {
+        margin: 0 0 0.8rem;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.25;
+        color: var(--phos-dim);
+      }
+
+      /* Full repo list */
+      .sub-head {
+        font-size: 1.05rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--phos-bright);
+        margin: 2.6rem 0 0.8rem;
+      }
+
+      .repo-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.85rem;
+      }
+
+      .repo-list li {
+        padding: 0.5rem 0 0.5rem 1.4rem;
+        position: relative;
+        border-bottom: 1px dotted rgba(12, 77, 36, 0.6);
+      }
+
+      .repo-list li::before {
+        content: ">";
+        position: absolute;
+        left: 0;
+        color: var(--phos-dim);
+      }
+
+      .repo-list a { color: var(--phos-bright); }
+
+      .lang {
+        display: inline-block;
+        border: 1px solid var(--phos-faint);
+        color: var(--phos-dim);
+        font-size: 0.68rem;
+        padding: 0 0.45rem;
+        margin-right: 0.55rem;
+        letter-spacing: 0.06em;
+        vertical-align: 1px;
+        white-space: nowrap;
+      }
+
+      .repo-desc { color: var(--phos-dim); }
+
+      code {
+        background: rgba(60, 255, 111, 0.08);
+        border: 1px solid rgba(60, 255, 111, 0.18);
+        padding: 0.05em 0.4em;
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+        color: var(--phos-bright);
+      }
+
+      /* ---------- Terminal ---------- */
+
+      .terminal {
+        border: 1px solid var(--phos-faint);
+        background: rgba(2, 8, 4, 0.85);
+        box-shadow: 0 0 24px rgba(60, 255, 111, 0.08), inset 0 0 24px rgba(0, 0, 0, 0.4);
+      }
+
+      .term-chrome {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.9rem;
+        border-bottom: 1px solid var(--phos-faint);
+        font-size: 0.78rem;
+        color: var(--phos-dim);
+        letter-spacing: 0.08em;
+      }
+
+      .term-chrome .dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        border: 1px solid var(--phos-dim);
+      }
+
+      .term-chrome .dot.lit { background: var(--phos-dim); box-shadow: 0 0 6px rgba(60, 255, 111, 0.5); }
+
+      .term-chrome .title { margin-left: auto; }
+
+      .term-body {
+        padding: 1rem 1.1rem 1.2rem;
+        min-height: 220px;
+        max-height: 340px;
+        overflow-y: auto;
+        font-size: 0.88rem;
+        cursor: text;
+      }
+
+      .term-body .line { white-space: pre-wrap; word-break: break-word; }
+
+      .term-body .dim { color: var(--phos-dim); }
+      .term-body .bright { color: var(--phos-bright); }
+      .term-body a { text-decoration: underline; text-underline-offset: 3px; }
+
+      .term-input-row {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .term-input-row .prompt { color: var(--phos-dim); white-space: nowrap; }
+
+      #term-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--phos-bright);
+        font-family: var(--font-mono);
+        font-size: 0.88rem;
+        caret-color: var(--phos);
+        padding: 0;
+      }
+
+      /* ---------- Footer ---------- */
+
+      footer {
+        border-top: 1px solid rgba(12, 77, 36, 0.5);
+        padding: 2rem 1.5rem 3rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--phos-dim);
+      }
+
+      footer p { margin: 0.3rem 0; }
+
+      /* subtle CRT power flicker, very gentle */
+      @media (prefers-reduced-motion: no-preference) {
+        .hero canvas { animation: crt-flicker 4.2s infinite steps(1); }
+
+        @keyframes crt-flicker {
+          0%, 100% { opacity: 1; }
+          92% { opacity: 1; }
+          93% { opacity: 0.92; }
+          94% { opacity: 1; }
+          96% { opacity: 0.96; }
+          97% { opacity: 1; }
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .scroll-hint { animation: none; }
       }
     </style>
   </head>
   <body>
-    <div id="gh" style='display:flex; color:#f0f6fc; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";'>
-      <div class="left" style="display:flex;align-items: center;">
-        <div><a href="https://github.com/BoKu" style="text-decoration: none;color: white;" >
-          <svg height="32" aria-hidden="true" viewBox="0 0 24 24" version="1.1" width="32" data-view-component="true" class="octicon octicon-mark-github v-align-middle">
-            <path fill="white" d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
-          </svg></a>
+
+    <header class="hero">
+      <canvas id="net" aria-hidden="true"></canvas>
+      <div class="hero-inner">
+        <p class="boot-line">SPARROW v1.0 // GATEWAY ONLINE</p>
+        <h1 class="site-title">BoKu</h1>
+        <p class="tagline"><b>Dev Duck.</b> Games, tools and web toys.<br>Best known for <b>PHOSPHOR</b>, a green-phosphor hacking sim.</p>
+        <p class="cta"><a href="https://github.com/BoKu">github.com/BoKu</a></p>
+      </div>
+      <p class="scroll-hint" aria-hidden="true">SCROLL FOR MORE</p>
+    </header>
+
+    <main>
+      <hr class="divider">
+
+      <p class="intro">
+        BoKu builds things that live in a browser: games, tools and small toys that mostly work.
+        The rig never sleeps, the coffee is procedural, and the rubber duck is load-bearing.
+        Current project: <b>PHOSPHOR</b>, a hacking sim in the spirit of <i>Uplink</i>.
+      </p>
+
+      <h2><span class="prompt">></span>Projects</h2>
+
+      <div class="featured-grid">
+
+        <article class="card">
+          <a class="card-img" href="https://github.com/BoKu/phosphor-releases/releases/latest" tabindex="-1" aria-hidden="true">
+            <img src="https://raw.githubusercontent.com/BoKu/phosphor-releases/main/screenshots/login.jpg"
+                 alt="PHOSPHOR login screen" loading="lazy" decoding="async">
+          </a>
+          <div class="card-body">
+            <h3>PHOSPHOR</h3>
+            <p>A green-phosphor hacking sim for Windows, macOS and Linux. Take contracts from the Hearth
+               board, bounce through relays, crack servers layer by layer, wipe your logs and get out
+               before the trace lands. A spiritual sequel to <i>Uplink</i>.</p>
+            <a class="card-link" href="https://github.com/BoKu/phosphor-releases/releases/latest">Download the latest release</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <a class="card-img" href="https://github.com/BoKu/Tower-Breach" tabindex="-1" aria-hidden="true">
+            <img src="https://raw.githubusercontent.com/BoKu/Tower-Breach/main/docs/screenshots/firefight.jpg"
+                 alt="A firefight on floor 12 of the tower" loading="lazy" decoding="async">
+          </a>
+          <div class="card-body">
+            <h3>Tower Breach</h3>
+            <p>Two hundred floors between you and the mainframe. An isometric co-op tactical survival
+               game for desktop and browser. Fight, sneak and hack your way up a new 200-floor tower
+               every run, alone or with up to four friends.</p>
+            <a class="card-link" href="https://github.com/BoKu/Tower-Breach">View on GitHub</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <a class="card-img" href="https://github.com/BoKu/The-Pirate-Bay-Cleaner" tabindex="-1" aria-hidden="true">
+            <img src="screenshots/pirate-bay-cleaner.png"
+                 alt="The Pirate Bay Cleaner in action" loading="lazy" decoding="async">
+          </a>
+          <div class="card-body">
+            <h3>The Pirate Bay Cleaner</h3>
+            <p>A userscript that cleans up The Pirate Bay: kills adverts, hijacked clicks and clutter.
+               Maintained on and off for the last 13 years, with full rewrites along the way.</p>
+            <a class="card-link" href="https://github.com/BoKu/The-Pirate-Bay-Cleaner">View on GitHub</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-noimg">
+<pre>   ^__^
+   (oo)\_______
+   (__)\       )\/\
+       ||----w |
+       ||     ||</pre>
+            awaiting signal
+          </div>
+          <div class="card-body">
+            <h3>Pig Precision</h3>
+            <p>Turn-based tactical artillery with pigs. Windows and Linux builds on the releases page.</p>
+            <a class="card-link" href="https://github.com/BoKu/pig-precision-releases/releases">Get it from the releases page</a>
+          </div>
+        </article>
+
+      </div>
+
+      <h3 class="sub-head">More on GitHub</h3>
+      <ul class="repo-list">
+        <li><a href="https://github.com/BoKu/boku.github.io">boku.github.io</a> <span class="lang">HTML</span><span class="repo-desc">This site. A canvas particle toy wearing a CRT.</span></li>
+        <li><a href="https://github.com/BoKu/NetSuite-Payslip-Real-Filename-Download">NetSuite-Payslip-Real-Filename-Download</a> <span class="lang">JavaScript</span><span class="repo-desc">Saves NetSuite payslip PDFs with their real filename.</span></li>
+        <li><a href="https://github.com/BoKu/TPAR-File-Validator---ATO-Specification-v3.0.1">TPAR-File-Validator</a> <span class="lang">PowerShell</span><span class="repo-desc">Validates TPAR files against the ATO v3.0.1 specification.</span></li>
+        <li><a href="https://github.com/BoKu/IISLogChopper">IISLogChopper</a> <span class="lang">PowerShell</span><span class="repo-desc">Imports IIS W3C logs into Microsoft SQL Server.</span></li>
+        <li><a href="https://github.com/BoKu/CardValidator">CardValidator</a> <span class="lang">JavaScript</span><span class="repo-desc">Validates Australian issued cards such as Medicare and DVA.</span></li>
+        <li><a href="https://github.com/BoKu/ProviderNumberValidator">ProviderNumberValidator</a> <span class="lang">JavaScript</span><span class="repo-desc">Australian doctor provider number validator.</span></li>
+        <li><a href="https://github.com/BoKu/Australian-ABN-Checker">Australian-ABN-Checker</a> <span class="lang">JavaScript</span><span class="repo-desc">Australian Business Number checker.</span></li>
+        <li><a href="https://github.com/BoKu/Useful-Microsoft-SQL-Scripts">Useful-Microsoft-SQL-Scripts</a> <span class="lang">TSQL</span><span class="repo-desc">Handy T-SQL scripts for Microsoft SQL Server.</span></li>
+        <li><a href="https://github.com/BoKu/Powershell-Examples">Powershell-Examples</a> <span class="lang">PowerShell</span><span class="repo-desc">PowerShell examples and snippets.</span></li>
+        <li><a href="https://github.com/BoKu/Wikipedia-Donate-Remover">Wikipedia-Donate-Remover</a> <span class="lang">JavaScript</span><span class="repo-desc">Removes Wikipedia donation banners.</span></li>
+        <li><a href="https://github.com/BoKu/Wikipedia-Fundraise-2016-Remover-Userscript">Wikipedia-Fundraise-2016-Remover-Userscript</a> <span class="lang">JavaScript</span><span class="repo-desc">Removed the 2016 Wikipedia fundraiser banners.</span></li>
+        <li><a href="https://github.com/BoKu/Seek-BAdvertisers">Seek-BAdvertisers</a> <span class="lang">JavaScript</span><span class="repo-desc">Userscript for Seek.com.</span></li>
+        <li><a href="https://github.com/BoKu/Episoft-Enhanced">Episoft-Enhanced</a> <span class="lang">JavaScript</span><span class="repo-desc">Userscript that enhances Episoft.</span></li>
+        <li><a href="https://github.com/BoKu/Colorbox-with-Google-Maps-gmapsjs-">Colorbox-with-Google-Maps-gmapsjs-</a> <span class="lang">JavaScript</span><span class="repo-desc">Colorbox lightbox with Google Maps via gmaps.js.</span></li>
+      </ul>
+
+      <h2><span class="prompt">></span>Terminal</h2>
+      <p class="dim-note" style="color: var(--phos-dim); font-size: 0.85rem;">
+        A working terminal, in the spirit of the game. Type <code>help</code> for commands.
+      </p>
+      <div class="terminal">
+        <div class="term-chrome">
+          <span class="dot lit"></span><span class="dot"></span><span class="dot"></span>
+          <span class="title">guest@boku:~</span>
         </div>
-        <div style="margin-left:12px;"><a href="https://github.com/BoKu" style="text-decoration: none;color: white;" >BoKu</a></div>
-        <div style="display:flex;">
-          <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path fill="white" d="M10.956 1.27994L6.06418 14.7201L5 14.7201L9.89181 1.27994L10.956 1.27994Z" fill="currentcolor"></path>
-    </svg></div>
-        <div style='display:flex; color:#f0f6fc; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";font-weight:600;'><a href="https://github.com/BoKu" style="text-decoration: none;color: white;" >github.com/BoKu</a></div>
+        <div class="term-body" id="term-body" aria-live="polite">
+          <div id="term-lines"></div>
+          <div class="term-input-row">
+            <span class="prompt" id="term-prompt">guest@boku:~$</span>
+            <input id="term-input" type="text" autocomplete="off" spellcheck="false"
+                   aria-label="Terminal command input">
+          </div>
+        </div>
       </div>
-      <div class="right">
-        
-      </div>
-    </div>
-    <canvas id="container" width="1000" height="1000"></canvas>
-  
+    </main>
+
+    <footer>
+      <p>Made by <a href="https://github.com/BoKu">BoKu</a>. Everything here is fiction. The duck is real.</p>
+      <p>MIT License. No servers were harmed in the making of this page.</p>
+    </footer>
+
     <script src="requestAnimationFrame.js"></script>
-      <script>
-var points = [],
-    velocity2 = 5, // velocity squared
-    canvas = document.getElementById('container'),
-    context = canvas.getContext('2d'),
-    radius = 5,
-    boundaryX = 1000,
-    boundaryY = 1000,
-    numberOfPoints = 69,
-    labels = ['B','o','K','u']; // letters to attach to points
+    <script>
+/* ============================================================
+   BoKu particle field - green-phosphor edition
+   Originally a bouncing-point toy, now wearing a CRT.
+   ============================================================ */
+(function () {
+  var canvas = document.getElementById('net');
+  var context = canvas.getContext('2d');
+  var points = [];
+  var velocity2 = 5;      // velocity squared
+  var radius = 5;
+  var W = 0, H = 0;
+  var fontSize = 9;       // label font size in px
+  var labelPadding = 5;   // padding (px) around the label inside the circle
+  var lineColor = 'rgba(60, 255, 111, 0.22)';
+  var lineWidth = 1;
+  var labels = ['B', 'o', 'K', 'u'];
 
-// visual settings you can tweak:
-var fontSize = 8;         // label font size in px
-var labelPadding = 4;      // horizontal padding (px) around the label inside the circle
-var lineColor = '#8BDA9F'; // connection line color
-var lineWidth = 1;         // connection line width
-
-init();
-
-function init() {
-  // create most points (leave room for labeled points)
-  var randomPoints = numberOfPoints - labels.length;
-  for (var i = 0; i < randomPoints; i++) {
-    createPoint();
+  function sizeCanvas() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var rect = canvas.getBoundingClientRect();
+    W = Math.max(1, rect.width);
+    H = Math.max(1, rect.height);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    seed();
   }
 
-  // create labeled points positioned roughly across the center so they look like a name
-  var startX = boundaryX/2 - 90;
-  var gap = 60;
-  for (var j = 0; j < labels.length; j++) {
-    createPoint({
-      x: startX + j * gap,
-      y: boundaryY/2,
-      char: labels[j]
+  function seed() {
+    points = [];
+    var randomPoints = Math.round(Math.min(70, (W * H) / 16000));
+    for (var i = 0; i < randomPoints; i++) {
+      createPoint();
+    }
+    // labeled points spread across the vertical centre so they read as a name
+    var gap = Math.min(110, W / (labels.length + 1.5));
+    var startX = W / 2 - gap * (labels.length - 1) / 2;
+    for (var j = 0; j < labels.length; j++) {
+      createPoint({ x: startX + j * gap, y: H / 2, char: labels[j] });
+    }
+    // circular chain of connections
+    for (var k = 0, l = points.length; k < l; k++) {
+      points[k].buddy = (k === 0) ? points[points.length - 1] : points[k - 1];
+    }
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.font = 'bold ' + fontSize + 'px ' +
+      '"JetBrains Mono", ui-monospace, Consolas, monospace';
+  }
+
+  function createPoint(opts) {
+    opts = opts || {};
+    var point = {}, vx2, vy2;
+    point.x = (typeof opts.x === 'number') ? opts.x : Math.random() * W;
+    point.y = (typeof opts.y === 'number') ? opts.y : Math.random() * H;
+
+    // random vx: Math.floor(Math.random()*2) gives 0 or 1, mapped to -1 or 1
+    var sign = (Math.floor(Math.random() * 2) * 2 - 1);
+    point.vx = sign * Math.random();
+    vx2 = Math.pow(point.vx, 2);
+    // vy^2 = velocity^2 - vx^2 (kept non-negative)
+    vy2 = Math.max(0, velocity2 - vx2);
+    point.vy = Math.sqrt(vy2) * ((Math.random() * 2) - 1);
+
+    if (opts.char) point.char = opts.char;
+    point.radius = radius;
+    points.push(point);
+  }
+
+  function resetVelocity(point, axis, dir) {
+    var vx, vy, vx2, vy2;
+    if (axis === 'x') {
+      point.vx = dir * Math.random();
+      vx2 = Math.pow(point.vx, 2);
+      vy2 = Math.max(0, velocity2 - vx2);
+      point.vy = Math.sqrt(vy2) * (Math.random() * 2 - 1);
+    } else {
+      point.vy = dir * Math.random();
+      vy2 = Math.pow(point.vy, 2);
+      vx2 = Math.max(0, velocity2 - vy2);
+      point.vx = Math.sqrt(vx2) * (Math.random() * 2 - 1);
+    }
+  }
+
+  function drawCircle(x, y, r, isLabel) {
+    context.beginPath();
+    context.arc(x, y, r, 0, 2 * Math.PI, false);
+    context.fillStyle = isLabel ? '#3cff6f' : '#19a63e';
+    if (isLabel) {
+      context.shadowColor = 'rgba(60, 255, 111, 0.9)';
+      context.shadowBlur = 16;
+    }
+    context.fill();
+    context.shadowBlur = 0;
+    if (isLabel) {
+      context.lineWidth = 1;
+      context.strokeStyle = '#7dffa0';
+      context.stroke();
+    }
+  }
+
+  function drawLine(x1, y1, x2, y2) {
+    context.beginPath();
+    context.moveTo(x1, y1);
+    context.lineTo(x2, y2);
+    context.strokeStyle = lineColor;
+    context.lineWidth = lineWidth;
+    context.stroke();
+  }
+
+  function draw() {
+    context.font = 'bold ' + fontSize + 'px ' +
+      '"JetBrains Mono", ui-monospace, Consolas, monospace';
+
+    // 1) update positions
+    for (var i = 0, l = points.length; i < l; i++) {
+      var point = points[i];
+      point.x += point.vx;
+      point.y += point.vy;
+    }
+
+    // 2) compute radii for labeled points and bounce off the edges
+    for (var i = 0, l = points.length; i < l; i++) {
+      var point = points[i];
+      if (point.char) {
+        var metrics = context.measureText(point.char);
+        var textWidth = metrics.width;
+        point.radius = Math.max(radius, Math.max(textWidth, fontSize) / 2 + labelPadding);
+      } else {
+        point.radius = radius;
+      }
+
+      if (point.x < point.radius) {
+        point.x = point.radius;
+        resetVelocity(point, 'x', 1);
+      } else if (point.x > W - point.radius) {
+        point.x = W - point.radius;
+        resetVelocity(point, 'x', -1);
+      }
+      if (point.y < point.radius) {
+        point.y = point.radius;
+        resetVelocity(point, 'y', 1);
+      } else if (point.y > H - point.radius) {
+        point.y = H - point.radius;
+        resetVelocity(point, 'y', -1);
+      }
+    }
+
+    // 3) draw connecting lines behind the circles
+    for (var i = 0, l = points.length; i < l; i++) {
+      var point = points[i];
+      if (point.buddy) drawLine(point.x, point.y, point.buddy.x, point.buddy.y);
+    }
+
+    // 4) draw circles and labels on top
+    for (var i = 0, l = points.length; i < l; i++) {
+      var point = points[i];
+      var isLabel = !!point.char;
+      drawCircle(point.x, point.y, point.radius, isLabel);
+      if (point.char) {
+        context.fillStyle = '#020503';
+        context.fillText(point.char, point.x, point.y + 1);
+      }
+    }
+  }
+
+  function animate() {
+    context.clearRect(0, 0, W, H);
+    draw();
+    requestAnimationFrame(animate);
+  }
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(sizeCanvas, 150);
+  });
+
+  sizeCanvas();
+  animate();
+})();
+
+/* ============================================================
+   Mini terminal - a nod to the PHOSPHOR in-game terminal
+   ============================================================ */
+(function () {
+  var body = document.getElementById('term-body');
+  var linesEl = document.getElementById('term-lines');
+  var input = document.getElementById('term-input');
+  var history = [];
+  var historyIndex = -1;
+
+  var files = {
+    'about.txt': 'BoKu. Dev Duck.\nBuilds games, tools and web toys.\nRubber duck debugging since forever.',
+    'projects.txt': 'PHOSPHOR  - green-phosphor hacking sim (see: phosphor)\nboku.github.io  - this site',
+    'welcome.txt': 'hello, runner.\nthe rig is yours now.\nsparrow is watching the logs.'
+  };
+
+  function line(html, cls) {
+    var div = document.createElement('div');
+    div.className = 'line' + (cls ? ' ' + cls : '');
+    div.innerHTML = html;
+    linesEl.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+    return div;
+  }
+
+  function echo(cmd) {
+    line('<span class="dim">guest@boku:~$</span> ' + escapeHtml(cmd));
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return {
+        '\u0026': '\u0026amp;',
+        '<': '\u0026lt;',
+        '>': '\u0026gt;',
+        '"': '\u0026quot;',
+        "'": '\u0026#39;'
+      }[c];
     });
   }
 
-  // create connections (circular chain)
-  for (var i = 0, l = points.length; i < l; i++) {
-    if (i === 0) {
-      points[i].buddy = points[points.length - 1];
+  var commands = {
+    help: function () {
+      line('Available commands:');
+      line('<span class="bright">  ls</span>              list files');
+      line('<span class="bright">  cat &lt;file&gt;</span>       print a file');
+      line('<span class="bright">  decode &lt;file&gt;</span>    decode a file');
+      line('<span class="bright">  phosphor</span>         PHOSPHOR download link');
+      line('<span class="bright">  github</span>            BoKu on GitHub');
+      line('<span class="bright">  duck</span>              ?');
+      line('<span class="bright">  clear</span>             clear the screen');
+    },
+    ls: function () {
+      line(Object.keys(files).map(function (f) { return escapeHtml(f); }).join('   ') +
+           '   <span class="dim">phosphor.exe</span>');
+    },
+    cat: function (args) {
+      var f = (args[0] || '').toLowerCase();
+      if (files[f]) {
+        line(escapeHtml(files[f]).replace(/\n/g, '<br>'), 'bright');
+      } else {
+        line('cat: ' + escapeHtml(f || '?') + ': no such file');
+      }
+    },
+    decode: function (args) {
+      var f = (args[0] || '').toLowerCase();
+      if (f === 'welcome.txt') {
+        line('decoding welcome.txt ...');
+        line('the duck was here. keep a pencil handy. - LANTERN', 'bright');
+      } else if (files[f]) {
+        line('decode: ' + escapeHtml(f) + ': nothing hidden in there. probably.');
+      } else {
+        line('decode: ' + escapeHtml(f || '?') + ': no such file');
+      }
+    },
+    phosphor: function () {
+      line('PHOSPHOR - a green-phosphor hacking sim.');
+      line('<a href="https://github.com/BoKu/phosphor-releases/releases/latest" target="_blank" rel="noopener">github.com/BoKu/phosphor-releases</a>');
+    },
+    github: function () {
+      line('<a href="https://github.com/BoKu" target="_blank" rel="noopener">github.com/BoKu</a>');
+    },
+    duck: function () {
+      var art = '   __\n  <(o )___\n   ( ._> /\n    `---\'\nquack.';
+      line(escapeHtml(art).replace(/\n/g, '<br>'), 'bright');
+    },
+    clear: function () {
+      linesEl.innerHTML = '';
+    },
+    sudo: function () {
+      line('nice try, runner.');
+    }
+  };
+
+  function run(raw) {
+    var parts = raw.trim().split(/\s+/);
+    var cmd = (parts[0] || '').toLowerCase();
+    var args = parts.slice(1);
+    if (!cmd) return;
+    if (commands[cmd]) {
+      commands[cmd](args);
     } else {
-      points[i].buddy = points[i - 1];
+      line('command not found: ' + escapeHtml(cmd) + ' - try <span class="bright">help</span>');
     }
   }
-  
-  // set canvas text style defaults
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-  context.font = 'bold ' + fontSize + 'px sans-serif';
-  
-  // animate
-  animate();
-}
 
-function createPoint(opts) {
-  opts = opts || {};
-  var point = {}, vx2, vy2;
-  point.x = (typeof opts.x === 'number') ? opts.x : Math.random() * boundaryX;
-  point.y = (typeof opts.y === 'number') ? opts.y : Math.random() * boundaryY;
+  body.addEventListener('click', function () { input.focus(); });
 
-  // random vx: use Math.floor(Math.random()*2) to get 0 or 1
-  var sign = (Math.floor(Math.random() * 2) * 2 - 1); // -1 or 1
-  point.vx = sign * Math.random();
-  vx2 = Math.pow(point.vx, 2);
-  // vy^2 = velocity^2 - vx^2 (ensure non-negative)
-  vy2 = Math.max(0, velocity2 - vx2);
-  point.vy = Math.sqrt(vy2) * ((Math.random() * 2) - 1);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      var value = input.value;
+      input.value = '';
+      echo(value);
+      if (value.trim()) {
+        history.push(value);
+        historyIndex = history.length;
+      }
+      run(value);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        historyIndex--;
+        input.value = history[historyIndex] || '';
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex < history.length) {
+        historyIndex++;
+        input.value = history[historyIndex] || '';
+      }
+    }
+  });
 
-  if (opts.char) {
-    point.char = opts.char;
-    // initial radius; final computed in draw() to match text + padding
-    point.radius = radius;
-  } else {
-    point.radius = radius;
-  }
-
-  points.push(point);
-}
-
-function resetVelocity(point, axis, dir) {
-  var vx, vy, vx2, vy2;
-  if(axis == 'x') {
-    point.vx = dir * Math.random();  
-    vx2 = Math.pow(point.vx, 2);
-    // vy^2 = velocity^2 - vx^2
-    vy2 = Math.max(0, velocity2 - vx2);
-    point.vy = Math.sqrt(vy2) * (Math.random()*2-1);
-  } else {
-    point.vy = dir * Math.random();  
-    vy2 = Math.pow(point.vy, 2);
-    // vx^2 = velocity^2 - vy^2
-    vx2 = Math.max(0, velocity2 - vy2);
-    point.vx = Math.sqrt(vx2) * (Math.random()*2-1);
-  }
-}
-
-function drawCircle(x, y, r, isLabel) {
-  context.beginPath();
-  context.arc(x, y, r, 0, 2 * Math.PI, false);
-  context.fillStyle = isLabel ? '#ffffff' : '#1E963C';
-  context.fill();  
-  if (isLabel) {
-    // subtle stroke to separate white circle from background/lines
-    context.lineWidth = 1;
-    context.strokeStyle = '#050a0e';
-    context.stroke();
-  }
-}
-
-function drawLine(x1, y1, x2, y2) {
-  context.beginPath();
-  context.moveTo(x1, y1);
-  context.lineTo(x2, y2);
-  context.strokeStyle = lineColor;
-  context.lineWidth = lineWidth;
-  context.stroke();
-}  
-
-function draw() {
-  // ensure font is set before measuring text
-  context.font = 'bold ' + fontSize + 'px sans-serif';
-
-  // 1) update positions
-  for(var i = 0, l = points.length; i < l; i++) {
-    var point = points[i];
-    point.x += point.vx;
-    point.y += point.vy;
-  }
-
-  // 2) compute radii for labeled points so collisions respect the padded size
-  for(var i = 0, l = points.length; i < l; i++) {
-    var point = points[i];
-    if (point.char) {
-      var metrics = context.measureText(point.char);
-      var textWidth = metrics.width;
-      // radius to fit text width or font size vertically, plus padding
-      var computedRadius = Math.max(radius, Math.max(textWidth, fontSize) / 2 + labelPadding);
-      point.radius = computedRadius;
+  // short boot sequence, fast and skippable by just typing
+  var boot = [
+    ['GATEWAY BIOS v2.34 - PHOSPHOR FAMILY', 'dim'],
+    ['mem check ............ OK', 'dim'],
+    ['trace daemon ......... idle', 'dim'],
+    ['loading sparrow ...... OK', 'dim'],
+    ['welcome, runner. type <b>help</b> for commands.', '']
+  ];
+  var bi = 0;
+  function bootStep() {
+    if (bi < boot.length) {
+      line(boot[bi][0], boot[bi][1]);
+      bi++;
+      setTimeout(bootStep, 220);
     } else {
-      point.radius = radius;
-    }
-
-    // check for edge collisions (bounce) using the computed radius
-    if(point.x < 0 + point.radius) {
-      point.x = point.radius;
-      resetVelocity(point, 'x', 1);
-    } else if(point.x > boundaryX - point.radius) {
-      point.x = boundaryX - point.radius;
-      resetVelocity(point, 'x', -1);
-    }
-    if(point.y < 0 + point.radius) {
-      point.y = point.radius;
-      resetVelocity(point, 'y', 1);
-    } else if(point.y > boundaryY - point.radius) {
-      point.y = boundaryY - point.radius;
-      resetVelocity(point, 'y', -1);
+      // focus without scrolling: the hero stays in view on load
+      if (input.focus) input.focus({ preventScroll: true });
     }
   }
-
-  // 3) draw all connecting lines first so they appear behind circles
-  for(var i = 0, l = points.length; i < l; i++) {
-    var point = points[i];
-    if (point.buddy) {
-      drawLine(point.x, point.y, point.buddy.x, point.buddy.y);
-    }
-  }
-
-  // 4) draw circles and labels on top
-  for(var i = 0, l = points.length; i < l; i++) {
-    var point = points[i];
-    var isLabel = !!point.char;
-
-    drawCircle(point.x, point.y, point.radius, isLabel);
-
-    // draw letter if present
-    if (point.char) {
-      context.fillStyle = '#102131'; // darker fill so letter is visible over white circle
-      context.fillText(point.char, point.x, point.y + 1); // slight vertical tweak
-    }
-  }
-}
-
-function animate() {
-  context.clearRect(0, 0, boundaryX, boundaryY);
-  draw();
-  requestAnimationFrame(animate);
-}
-  </script>
+  setTimeout(bootStep, 400);
+})();
+    </script>
   </body>
 </html>
